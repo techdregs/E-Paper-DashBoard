@@ -1,0 +1,330 @@
+esphome:
+  name: e-paper-dashboard
+  friendly_name: E-Paper Dashboard
+  on_boot:
+    then:
+      - switch.turn_on: display_power
+      - script.execute: update_screen
+  on_shutdown:
+    then:
+      - switch.turn_off: display_power
+
+esp32:
+  board: featheresp32
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "yourkey"
+
+ota:
+  password: "yourpassword"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "E-Paper-Dashboard"
+    password: "yourpwd"
+
+captive_portal:
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+sensor:
+  - platform: homeassistant
+    id: out_temp
+    entity_id: sensor.outdoor_weather_sensor_temperature
+
+  - platform: homeassistant
+    id: out_humidity
+    entity_id: sensor.outdoor_weather_sensor_humidity
+
+  - platform: homeassistant
+    id: out_pressure
+    entity_id: sensor.outdoor_weather_sensor_pressure
+
+  - platform: homeassistant
+    id: out_moisture
+    entity_id: sensor.outdoor_weather_sensor_soil_moisture
+
+  - platform: homeassistant
+    id: pot_moisture
+    entity_id: sensor.wifi_moisture_sensor_soil_moisture
+
+  - platform: homeassistant
+    id: temp_now
+    entity_id: sensor.tempcurrent
+  
+  - platform: homeassistant
+    id: temp_h1
+    entity_id: sensor.temperature_forecast_h1
+  
+  - platform: homeassistant
+    id: temp_h2
+    entity_id: sensor.temperature_forecast_h2
+  
+  - platform: homeassistant
+    id: temp_h3
+    entity_id: sensor.temperature_forecast_h3
+
+  - platform: homeassistant
+    id: temp_d1
+    entity_id: sensor.temperature_forecast_d1
+  
+  - platform: homeassistant
+    id: temp_d2
+    entity_id: sensor.temperature_forecast_d2
+  
+  - platform: homeassistant
+    id: temp_d3
+    entity_id: sensor.temperature_forecast_d3
+
+text_sensor:
+  - platform: homeassistant
+    id: front_door
+    entity_id: lock.frontdoor
+  
+  - platform: homeassistant
+    id: back_door
+    entity_id: lock.backdoor
+
+  - platform: homeassistant
+    id: weather_now
+    entity_id: sensor.weathercurrent
+  
+  - platform: homeassistant
+    id: weather_h1
+    entity_id: sensor.weather_forecast_h1
+  
+  - platform: homeassistant
+    id: weather_h2
+    entity_id: sensor.weather_forecast_h2
+  
+  - platform: homeassistant
+    id: weather_h3
+    entity_id: sensor.weather_forecast_h3
+  
+  - platform: homeassistant
+    id: weather_d1
+    entity_id: sensor.weather_forecast_d1
+  
+  - platform: homeassistant
+    id: weather_d2
+    entity_id: sensor.weather_forecast_d2
+  
+  - platform: homeassistant
+    id: weather_d3
+    entity_id: sensor.weather_forecast_d3
+
+switch:
+  - platform: gpio
+    pin: GPIO32 #display power enable pin
+    id: display_power
+    internal: true  
+
+button:
+  - platform: restart
+    name: "Dashboard - Restart"
+  - platform: template
+    name: "Dashboard - Refresh Screen"
+    entity_category: config
+    on_press:
+      - script.execute: update_screen
+
+font:
+  - file: "gfonts://Inter@900"
+    id: big
+    size: 120
+  - file: "gfonts://Inter@900"
+    id: medium
+    size: 60
+  - file: "gfonts://Inter@700"
+    id: small
+    size: 30
+  - file: "gfonts://Inter@700"
+    id: tiny
+    size: 24
+  
+  # Include Material Design Icons font
+  # Thanks to https://community.home-assistant.io/t/display-materialdesign-icons-on-esphome-attached-to-screen/199790/16
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: font_mdi_large
+    size: 200
+    glyphs: &mdi-weather-glyphs
+      - "\U000F0590" # mdi-weather-cloudy
+      - "\U000F0F2F" # mdi-weather-cloudy-alert
+      - "\U000F0E6E" # mdi-weather-cloudy-arrow-right
+      - "\U000F0591" # mdi-weather-fog
+      - "\U000F0592" # mdi-weather-hail
+      - "\U000F0F30" # mdi-weather-hazy
+      - "\U000F0898" # mdi-weather-hurricane
+      - "\U000F0593" # mdi-weather-lightning
+      - "\U000F067E" # mdi-weather-lightning-rainy
+      - "\U000F0594" # mdi-weather-clear-night
+      - "\U000F0F31" # mdi-weather-night-partly-cloudy
+      - "\U000F0595" # mdi-weather-partly-cloudy
+      - "\U000F0F32" # mdi-weather-partly-lightning
+      - "\U000F0F33" # mdi-weather-partly-rainy
+      - "\U000F0F34" # mdi-weather-partly-snowy
+      - "\U000F0F35" # mdi-weather-partly-snowy-rainy
+      - "\U000F0596" # mdi-weather-pouring
+      - "\U000F0597" # mdi-weather-rainy
+      - "\U000F0598" # mdi-weather-snowy
+      - "\U000F0F36" # mdi-weather-snowy-heavy
+      - "\U000F067F" # mdi-weather-snowy-rainy
+      - "\U000F0599" # mdi-weather-sunny
+      - "\U000F0F37" # mdi-weather-sunny-alert
+      - "\U000F14E4" # mdi-weather-sunny-off
+      - "\U000F059A" # mdi-weather-sunset
+      - "\U000F059B" # mdi-weather-sunset-down
+      - "\U000F059C" # mdi-weather-sunset-up
+      - "\U000F0F38" # mdi-weather-tornado
+      - "\U000F059D" # mdi-weather-windy
+      - "\U000F059E" # mdi-weather-windy-variant
+      - "\U000F10AF" # mdi-door-closed-lock
+      - "\U000F081C" # mdi-door-open
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: font_mdi_medium
+    size: 40
+    glyphs: *mdi-weather-glyphs
+
+spi:
+  clk_pin: GPIO5
+  mosi_pin: GPIO18
+
+script:
+  - id: update_screen
+    then:
+      - component.update: screen
+
+binary_sensor:
+  - platform: status
+    name: "Status"
+  - platform: homeassistant
+    name: "OTA Mode"
+    id: otamode
+    entity_id: input_boolean.display_ota_mode   
+
+#deep_sleep: #modify to adjust sleep/runtime
+#  id: gotosleep
+#  run_duration: 15s
+#  sleep_duration: 45s
+
+#Make Temp Graph
+graph:
+    - id: temp_graph
+      duration: 12h
+      width: 300
+      height: 50
+      border: False
+      traces:
+        - sensor: out_temp
+          line_thickness: 1
+#Display Setup
+display:
+  - platform: waveshare_epaper
+    cs_pin: GPIO22
+    dc_pin: GPIO23
+    busy_pin: 
+      number: GPIO19
+      inverted: true
+    reset_pin: GPIO14
+    reset_duration: 2ms
+    model: 7.50inV2
+    id: screen
+    update_interval: 60s
+    lambda: |-
+      // Map weather states to MDI characters.
+      std::map<std::string, std::string> weather_icon_map
+        {
+          {"cloudy", "\U000F0590"},
+          {"cloudy-alert", "\U000F0F2F"},
+          {"cloudy-arrow-right", "\U000F0E6E"},
+          {"fog", "\U000F0591"},
+          {"hail", "\U000F0592"},
+          {"hazy", "\U000F0F30"},
+          {"hurricane", "\U000F0898"},
+          {"lightning", "\U000F0593"},
+          {"lightning-rainy", "\U000F067E"},
+          {"clear-night", "\U000F0594"},
+          {"night-partly-cloudy", "U000F0F31"},
+          {"partlycloudy", "\U000F0595"},
+          {"partly-lightning", "\U000F0F32"},
+          {"partly-rainy", "\U000F0F33"},
+          {"partly-snowy", "\U000F0F34"},
+          {"partly-snowy-rainy", "\U000F0F35"},
+          {"pouring", "\U000F0596"},
+          {"rainy", "\U000F0597"},
+          {"snowy", "\U000F0598"},
+          {"snowy-heavy", "\U000F0F36"},
+          {"snowy-rainy", "\U000F067F"},
+          {"sunny", "\U000F0599"},
+          {"sunny-alert", "\U000F0F37"},
+          {"sunny-off", "\U000F14E4"},
+          {"sunset", "\U000F059A"},
+          {"sunset-down", "\U000F059B"},
+          {"sunset-up", "\U000F059C"},
+          {"tornado", "\U000F0F38"},
+          {"windy", "\U000F059D"},
+          {"windy-variant", "\U000F059E"},
+        };
+      // Map door states to MDI characters.
+      std::map<std::string, std::string> door_map
+        {
+          {"locked", "\U000F10AF"},
+          {"unlocked", "\U000F081C"},
+        };
+      // Forecast Boxes
+      it.rectangle(550,200,80,80);
+      it.rectangle(550,200,160,80);
+      it.rectangle(550,200,240,80);
+      it.rectangle(550,340,80,80);
+      it.rectangle(550,340,160,80);
+      it.rectangle(550,340,240,80);
+      //Date and Time
+      it.strftime(400, 10, id(small), TextAlign::CENTER_HORIZONTAL, "%A %B %d, %Y", id(homeassistant_time).now());
+      it.strftime(400, 30, id(big), TextAlign::CENTER_HORIZONTAL, "%I:%M%p", id(homeassistant_time).now());
+      //Current Weather
+      it.printf(400, 160, id(tiny), TextAlign::CENTER_HORIZONTAL, "Currently: %s", id(weather_now).state.c_str());
+      it.printf(400, 180, id(font_mdi_large), TextAlign::CENTER_HORIZONTAL, "%s", weather_icon_map[id(weather_now).state.c_str()].c_str());
+      //it.printf(400, 340, id(small), TextAlign::CENTER_HORIZONTAL, "%s", id(weather_now).state.c_str());
+      it.printf(400, 360, id(medium), TextAlign::CENTER_HORIZONTAL, "%.1f°", id(temp_now).state);
+      //Hourly Forecast
+      it.printf(670,170, id(tiny), TextAlign::CENTER_HORIZONTAL, "Hourly");
+      it.printf(590,210,id(font_mdi_medium),TextAlign::CENTER_HORIZONTAL,"%s",weather_icon_map[id(weather_h1).state.c_str()].c_str());
+      it.printf(670,210,id(font_mdi_medium),TextAlign::CENTER_HORIZONTAL,"%s",weather_icon_map[id(weather_h2).state.c_str()].c_str());
+      it.printf(750,210,id(font_mdi_medium),TextAlign::CENTER_HORIZONTAL,"%s",weather_icon_map[id(weather_h1).state.c_str()].c_str());
+      it.printf(590,250,id(tiny),TextAlign::CENTER_HORIZONTAL, "%.0f°", id(temp_h1).state);
+      it.printf(670,250,id(tiny),TextAlign::CENTER_HORIZONTAL, "%.0f°", id(temp_h2).state);
+      it.printf(750,250,id(tiny),TextAlign::CENTER_HORIZONTAL, "%.0f°", id(temp_h3).state);
+      //Daily Forecast
+      it.printf(670,310, id(tiny), TextAlign::CENTER_HORIZONTAL, "Daily");
+      it.printf(590,350,id(font_mdi_medium),TextAlign::CENTER_HORIZONTAL,"%s",weather_icon_map[id(weather_d1).state.c_str()].c_str());
+      it.printf(670,350,id(font_mdi_medium),TextAlign::CENTER_HORIZONTAL,"%s",weather_icon_map[id(weather_d2).state.c_str()].c_str());
+      it.printf(750,350,id(font_mdi_medium),TextAlign::CENTER_HORIZONTAL,"%s",weather_icon_map[id(weather_d1).state.c_str()].c_str());
+      it.printf(590,390,id(tiny),TextAlign::CENTER_HORIZONTAL, "%.0f°", id(temp_d1).state);
+      it.printf(670,390,id(tiny),TextAlign::CENTER_HORIZONTAL, "%.0f°", id(temp_d2).state);
+      it.printf(750,390,id(tiny),TextAlign::CENTER_HORIZONTAL, "%.0f°", id(temp_d3).state);
+      //Outdoor Data
+      it.printf(20, 270, id(tiny), "Yard Temp: %.1f°", id(out_temp).state);
+      it.printf(20, 300, id(tiny), "Humidity: %.1f%%", id(out_humidity).state);
+      it.printf(20, 330, id(tiny), "Pressure: %.2f in", id(out_pressure).state);
+      it.printf(20, 360, id(tiny), "Soil Moisture: %.0f%%", id(out_moisture).state);
+      it.printf(20, 390, id(tiny), "Pot Moisture: %.0f%%", id(pot_moisture).state);
+      //Door Status
+      it.printf(20, 170, id(tiny),"Front:");
+      it.printf(100, 170, id(font_mdi_medium),"%s",door_map[id(front_door).state.c_str()].c_str());
+      it.printf(20, 210, id(tiny),"Rear:");
+      it.printf(100, 210, id(font_mdi_medium),"%s",door_map[id(back_door).state.c_str()].c_str());
+      //Temp Graph
+      it.graph(250, 430, id(temp_graph));   

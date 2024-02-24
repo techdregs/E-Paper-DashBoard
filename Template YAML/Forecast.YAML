@@ -1,0 +1,69 @@
+- trigger:
+    - platform: event #update at startup#
+      event_type: homeassistant_started
+    - platform: time_pattern
+      hours: /1 #then update every hour#
+  action:
+    - service: weather.get_forecasts #update hourly forecasts#
+      target:
+        entity_id: weather.forecast_home #replace with your own weather integration
+      data:
+        type: hourly
+      response_variable: hourly
+    - service: weather.get_forecasts #update daily forecasts#
+      target:
+        entity_id: weather.forecast_home
+      data:
+        type: daily
+      response_variable: daily
+  sensor:
+    #Sensors for current weather data#
+    - name: "WeatherCurrent"
+      state: "{{ states('weather.forecast_home') }}"
+    - name: "TempCurrent"
+      unit_of_measurement: '°F'
+      state: >
+        {{ state_attr('weather.forecast_home', 'temperature') }}
+    #Sensors for forecast weather data#
+    - name: Weather Forecast H1
+      unique_id: weather_forecast_h1
+      state: "{{ hourly['weather.forecast_home'].forecast[0].condition }}" #'hourly' pulls hourly forecasts, [0] = next hour's forecast
+    - name: Temperature Forecast H1
+      unique_id: temperature_forecast_h1
+      state: "{{ hourly['weather.forecast_home'].forecast[0].temperature }}"
+      unit_of_measurement: °F
+    - name: Weather Forecast H2
+      unique_id: weather_forecast_h2
+      state: "{{ hourly['weather.forecast_home'].forecast[1].condition }}" # [1] = weather in 2 hours
+    - name: Temperature Forecast H2
+      unique_id: temperature_forecast_h2
+      state: "{{ hourly['weather.forecast_home'].forecast[1].temperature }}"
+      unit_of_measurement: °F
+    - name: Weather Forecast H3
+      unique_id: weather_forecast_h3
+      state: "{{ hourly['weather.forecast_home'].forecast[2].condition }}"
+    - name: Temperature Forecast H3
+      unique_id: temperature_forecast_h3
+      state: "{{ hourly['weather.forecast_home'].forecast[2].temperature }}"
+      unit_of_measurement: °F
+    - name: Weather Forecast D1
+      unique_id: weather_forecast_d1
+      state: "{{ daily['weather.forecast_home'].forecast[0].condition }}" #'daily' pulls daily forecasts, [0] = tomorrow's forecast
+    - name: Temperature Forecast D1
+      unique_id: temperature_forecast_d1
+      state: "{{ daily['weather.forecast_home'].forecast[0].temperature }}"
+      unit_of_measurement: °F
+    - name: Weather Forecast D2
+      unique_id: weather_forecast_d2
+      state: "{{ daily['weather.forecast_home'].forecast[1].condition }}" # [1] = forecast day after tomorrow
+    - name: Temperature Forecast D2
+      unique_id: temperature_forecast_d2
+      state: "{{ daily['weather.forecast_home'].forecast[1].temperature }}"
+      unit_of_measurement: °F
+    - name: Weather Forecast D3
+      unique_id: weather_forecast_d3
+      state: "{{ daily['weather.forecast_home'].forecast[2].condition }}"
+    - name: Temperature Forecast D3
+      unique_id: temperature_forecast_d3
+      state: "{{ daily['weather.forecast_home'].forecast[2].temperature }}"
+      unit_of_measurement: °F
